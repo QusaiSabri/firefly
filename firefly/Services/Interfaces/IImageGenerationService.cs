@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using firefly.Models;
 
 namespace firefly.Services.Interfaces
 {
     public interface IImageGenerationService
     {
-        
+        Task<GenerateImageResponse> GenerateImageAsync(GenerateImageRequest request);
+        Task<JobResult> GetJobResultAsync(string jobId);
     }
 }

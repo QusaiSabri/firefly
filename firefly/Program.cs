@@ -1,4 +1,7 @@
 using firefly.Services;
+using firefly.Services.Adapters;
+using firefly.Services.Interfaces;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,12 +10,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
     .AddJsonFile("appsettings.json")
     .AddJsonFile($"appsettings.Local.json", optional: true);
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+.AddJsonOptions(options =>
+ {
+     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+ });
 
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<FireflyStorageService>();
 builder.Services.AddScoped<FireflyImageService>();
+builder.Services.AddScoped<IImageGenerationService, FireflyAdapter>();
+
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

@@ -65,7 +65,6 @@ public class FireflyImageService
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         request.Headers.Add("x-api-key", _config["Adobe:ClientId"]);
-
         request.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
 
         var response = await client.SendAsync(request);
