@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace firefly.Models
+namespace firefly.Models.Responses
 {
-    public class GenerateImageResponse
+    public class ExpandImageResponse
     {
         [JsonPropertyName("jobId")]
         public string JobId { get; set; }

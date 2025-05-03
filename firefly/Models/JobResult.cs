@@ -38,7 +38,7 @@ namespace firefly.Models
     public class FireflyImageOutput
     {
         [JsonPropertyName("seed")]
-        public long Seed { get; set; }
+        public int Seed { get; set; }
 
         [JsonPropertyName("image")]
         public FireflyImageUrl Image { get; set; }

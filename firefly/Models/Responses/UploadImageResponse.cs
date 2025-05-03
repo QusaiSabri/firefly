@@ -1,4 +1,4 @@
-﻿namespace firefly.Models
+﻿namespace firefly.Models.Responses
 {
     public class UploadImageResponse
     {

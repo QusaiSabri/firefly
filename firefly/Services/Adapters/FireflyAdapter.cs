@@ -3,35 +3,39 @@ using firefly.Services.Interfaces;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text;
+using firefly.Data;
+using firefly.Models.Requests;
+using firefly.Models.Responses;
+using System.Text.Json.Serialization;
 
 namespace firefly.Services.Adapters
 {
-    public class FireflyAdapter : IImageGenerationService
+    public class FireflyAdapter : IImageService
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
         private readonly AuthService _authService;
         private readonly ILogger<FireflyAdapter> _logger;
+        private readonly IImageGenerationJobRepository _jobRepo;
 
-
-        public FireflyAdapter(HttpClient httpClient, IConfiguration config, AuthService authService)
+        public FireflyAdapter(HttpClient httpClient, IConfiguration config, AuthService authService, IImageGenerationJobRepository jobRepo)
         {
             _httpClient = httpClient;
             _config = config;
             _authService = authService;
+            _jobRepo = jobRepo;
         }
         public async Task<GenerateImageResponse> GenerateImageAsync(GenerateImageRequest request)
         {
             var baseUrl = _config["Adobe:GenerateAsyncEndpoint"];
             var clientId = _config["Adobe:ClientId"];
-            var clientSecret = _config["Firefly:ClientSecret"];
             var token = await _authService.GetAccessTokenAsync();
 
             var body = new
             {
                 prompt = request.Prompt,
                 contentClass = "photo",
-                numVariations = 1,
+                numVariations = 3,
                 //style = request.ReferenceImageId != null ? new
                 //{
                 //    imageReference = new
@@ -54,7 +58,28 @@ namespace firefly.Services.Adapters
             response.EnsureSuccessStatusCode();
             var json = await response.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<GenerateImageResponse>(json);
+
+            var result = JsonSerializer.Deserialize<GenerateImageResponse>(json);
+
+            if(result == null || string.IsNullOrWhiteSpace(result.JobId))
+            {
+                _logger.LogWarning("Received null or invalid job result from Firefly.");
+                throw new Exception("Invalid response from Firefly.");                
+            }
+
+            var job = new ImageGenerationJob
+            {
+                JobId = result.JobId!,
+                Prompt = request.Prompt,
+                StatusUrl = result.StatusUrl!,
+                CancelUrl = result.CancelUrl!,
+                CreatedAt = DateTime.UtcNow,
+                IsCompleted = false
+            };
+
+            await _jobRepo.SaveJobAsync(job);
+
+            return result;
         }
 
         public async Task<JobResult> GetJobResultAsync(string jobId)
@@ -79,6 +104,54 @@ namespace firefly.Services.Adapters
 
             var stream = await response.Content.ReadAsStreamAsync();
             var result = await JsonSerializer.DeserializeAsync<JobResult>(stream);
+
+            return result;
+        }
+
+        public async Task<ExpandImageResponse> ExpandImageAsync(ExpandImageRequest request)
+        {
+            var baseUrl = _config["Adobe:ExpandAsyncEndpoint"];
+            var clientId = _config["Adobe:ClientId"];
+            var token = await _authService.GetAccessTokenAsync();
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+            var jsonBody = JsonSerializer.Serialize(request, options);
+
+            var httpRequest = new HttpRequestMessage(HttpMethod.Post, baseUrl);
+            httpRequest.Headers.Add("x-api-key", clientId);
+            httpRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            httpRequest.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+            Console.WriteLine(jsonBody);
+
+            var response = await _httpClient.SendAsync(httpRequest);
+            response.EnsureSuccessStatusCode();
+            
+            var json = await response.Content.ReadAsStringAsync();
+            
+            var result = JsonSerializer.Deserialize<ExpandImageResponse>(json);
+            
+            if (result == null || string.IsNullOrWhiteSpace(result.JobId))
+            {
+                _logger.LogWarning("Received null or invalid job result from Firefly.");
+                throw new Exception("Invalid response from Firefly.");
+            }
+            
+            var job = new ImageGenerationJob
+            {
+                JobId = result.JobId!,
+                Prompt = request.Prompt,
+                StatusUrl = result.StatusUrl!,
+                CancelUrl = result.CancelUrl!,
+                CreatedAt = DateTime.UtcNow,
+                IsCompleted = false
+            };
+            await _jobRepo.SaveJobAsync(job);
 
             return result;
         }

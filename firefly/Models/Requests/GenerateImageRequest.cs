@@ -1,6 +1,6 @@
 ﻿using firefly.Models.Enums;
 
-namespace firefly.Models
+namespace firefly.Models.Requests
 {
     public class GenerateImageRequest
     {

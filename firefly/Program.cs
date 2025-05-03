@@ -1,6 +1,9 @@
+using firefly.Data;
 using firefly.Services;
 using firefly.Services.Adapters;
 using firefly.Services.Interfaces;
+using firefly.Services.Storage;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,8 +24,15 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<FireflyStorageService>();
 builder.Services.AddScoped<FireflyImageService>();
-builder.Services.AddScoped<IImageGenerationService, FireflyAdapter>();
+builder.Services.AddScoped<IImageService, FireflyAdapter>();
+builder.Services.AddScoped<IImageGenerationJobRepository, ImageGenerationJobRepository>();
 
+
+builder.Services.AddDbContext<LuminarDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddHostedService<JobPollingService>();
+builder.Services.AddScoped<IStorageService, AzureBlobStorageService>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
