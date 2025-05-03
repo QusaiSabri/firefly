@@ -33,7 +33,16 @@ builder.Services.AddDbContext<LuminarDbContext>(options =>
 builder.Services.AddHostedService<JobPollingService>();
 builder.Services.AddScoped<IStorageService, AzureBlobStorageService>();
 
-// Rate limiting
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
+});
 
 
 
