@@ -31,28 +31,18 @@ namespace firefly.Services.Adapters
             var clientId = _config["Adobe:ClientId"];
             var token = await _authService.GetAccessTokenAsync();
 
-            var body = new
+            var options = new JsonSerializerOptions
             {
-                prompt = request.Prompt,
-                contentClass = "photo",
-                numVariations = 3,
-                //style = request.ReferenceImageId != null ? new
-                //{
-                //    imageReference = new
-                //    {
-                //        source = new
-                //        {
-                //            uploadId = request.ReferenceImageId
-                //        }
-                //    }
-                //} : null
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
+            var jsonBody = JsonSerializer.Serialize(request, options);
 
             var httpRequest = new HttpRequestMessage(HttpMethod.Post, baseUrl);
             httpRequest.Headers.Add("x-api-key", clientId);
             httpRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            httpRequest.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+            httpRequest.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.SendAsync(httpRequest);
             response.EnsureSuccessStatusCode();

@@ -20,10 +20,9 @@ builder.Services.AddControllers()
      options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
  });
 
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<FireflyAdapter>().AddStandardResilienceHandler();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<FireflyStorageService>();
-builder.Services.AddScoped<FireflyImageService>();
 builder.Services.AddScoped<IImageService, FireflyAdapter>();
 builder.Services.AddScoped<IImageGenerationJobRepository, ImageGenerationJobRepository>();
 
@@ -33,6 +32,10 @@ builder.Services.AddDbContext<LuminarDbContext>(options =>
 
 builder.Services.AddHostedService<JobPollingService>();
 builder.Services.AddScoped<IStorageService, AzureBlobStorageService>();
+
+// Rate limiting
+
+
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
