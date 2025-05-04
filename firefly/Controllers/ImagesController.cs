@@ -46,6 +46,14 @@ namespace firefly.Controllers
             return Ok(result);
         }
 
+        [HttpGet("/jobs/{jobId}/status")]
+        public async Task<IActionResult> GetJobStatus(string jobId)
+        {
+            var isJobCompleted = await _dbContext.ImageGenerationJobs
+                .AnyAsync(j => j.JobId == jobId && j.IsCompleted);
+
+            return Ok(new { completed = isJobCompleted });
+        }
 
         [HttpGet("result/{jobId}")]
         public async Task<IActionResult> GetJobResult(string jobId)
