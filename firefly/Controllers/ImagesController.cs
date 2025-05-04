@@ -9,14 +9,14 @@ namespace firefly.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ImageController : Controller
+    public class ImagesController : Controller
     {
         private readonly FireflyStorageService _storageService;
         private readonly IImageService _imageService;
         private readonly IStorageService _blobService;
         private readonly LuminarDbContext _dbContext;
 
-        public ImageController(FireflyStorageService storageService, IImageService imageService, LuminarDbContext dbContext, IStorageService blobService)
+        public ImagesController(FireflyStorageService storageService, IImageService imageService, LuminarDbContext dbContext, IStorageService blobService)
         {
             _storageService = storageService;
             _imageService = imageService;
@@ -53,8 +53,8 @@ namespace firefly.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{jobId}")]
-        public IActionResult GetImages(Guid jobId)
+        [HttpGet("/jobs/{jobId}/images")]
+        public async Task<IActionResult> GetImagesAsync(Guid jobId)
         {
             var sasUrls = new List<string>();
             
@@ -64,10 +64,32 @@ namespace firefly.Controllers
            
             foreach (var asset in assetsJobIds)
             {
-                var sasUrl = _blobService.GetSasUrl(asset.BlobPath, TimeSpan.FromHours(2));
+                var sasUrl = await _blobService.GetSasUrl(asset.BlobPath, TimeSpan.FromHours(2));
                 sasUrls.Add(sasUrl);
             }
             
+            return Ok(new { urls = sasUrls });
+        }
+
+        // get all images for all existing jobs
+        [HttpGet]
+        public async Task<IActionResult> GetAllImagesAsync([FromQuery] int? limit)
+        {
+            var sasUrls = new List<string>();
+
+            var assetsJobIds = _dbContext.ImageAssets
+                .OrderByDescending(a => a.Id)
+                .Take(limit ?? int.MaxValue)
+                .ToList();
+
+            if (assetsJobIds == null || assetsJobIds.Count == 0)
+                return NotFound();
+
+            foreach (var asset in assetsJobIds)
+            {
+                var sasUrl = await _blobService.GetSasUrl(asset.BlobPath, TimeSpan.FromHours(2));
+                sasUrls.Add(sasUrl);
+            }
             return Ok(new { urls = sasUrls });
         }
     }

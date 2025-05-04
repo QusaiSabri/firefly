@@ -36,13 +36,20 @@ namespace firefly.Services.Storage
             return blobClient.Uri.ToString();
         }
 
-          public string GetSasUrl(string blobPath, TimeSpan expiry)
-    {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
-        var blobClient = containerClient.GetBlobClient(blobPath);
+          public async Task<string> GetSasUrl(string blobPath, TimeSpan expiry)
+          {
+            var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+            
+            await containerClient.CreateIfNotExistsAsync();
 
-        var sasUri = blobClient.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.Add(expiry));
-        return sasUri.ToString();
-    }
+            if (containerClient.Exists() && !String.IsNullOrEmpty(blobPath))
+            {               
+                var blobClient = containerClient.GetBlobClient(blobPath);
+                var sasUri = blobClient.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.Add(expiry));
+                return sasUri.ToString();
+            }
+
+            return string.Empty;
+        }
     }
 }
