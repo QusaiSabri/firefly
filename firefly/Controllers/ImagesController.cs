@@ -25,7 +25,7 @@ namespace firefly.Controllers
             _blobService = blobService;
         }
 
-        [HttpPost("upload")]
+        [HttpPost("upload/blob")]
         public async Task<IActionResult> Upload([FromForm] IFormFile file)
         {
             var uploadId = await _storageService.UploadImageAsync(file);
@@ -106,7 +106,7 @@ namespace firefly.Controllers
             return Ok(new { urls = sasUrls });
         }
 
-        [HttpPost("upload")]
+        [HttpPost("upload/firefly")]
         public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
         {
             if (file == null || file.Length == 0)
