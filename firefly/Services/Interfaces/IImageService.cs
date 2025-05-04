@@ -9,6 +9,6 @@ namespace firefly.Services.Interfaces
         Task<ExpandImageResponse> ExpandImageAsync(ExpandImageRequest request);
         Task<GenerateImageResponse> GenerateImageAsync(GenerateImageRequest request);
         Task<JobResult> GetJobResultAsync(string jobId);
-        Task<UploadImageResponse> UploadImageAsync(IFormFile file);
+        Task<UploadImageToFireFlyResponse> UploadImageAsync(IFormFile file);
     }
 }
