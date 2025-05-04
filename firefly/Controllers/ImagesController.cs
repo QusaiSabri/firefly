@@ -4,6 +4,7 @@ using firefly.Models.Responses;
 using firefly.Services;
 using firefly.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace firefly.Controllers
 {
@@ -54,11 +55,15 @@ namespace firefly.Controllers
         }
 
         [HttpGet("/jobs/{jobId}/images")]
-        public async Task<IActionResult> GetImagesAsync(Guid jobId)
+        public async Task<IActionResult> GetImagesAsync(string jobId)
         {
             var sasUrls = new List<string>();
             
-            var assetsJobIds = _dbContext.ImageAssets.Where(a => a.JobId == jobId).ToList();
+            var assetsJobIds = _dbContext.ImageAssets
+                .Include(a => a.Job)
+                .Where(j => j.Job.JobId == jobId)
+                .ToList();
+            
             if (assetsJobIds == null || assetsJobIds.Count == 0)
                 return NotFound();
            
