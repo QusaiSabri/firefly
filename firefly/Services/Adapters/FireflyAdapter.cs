@@ -145,5 +145,28 @@ namespace firefly.Services.Adapters
 
             return result;
         }
+
+        public async Task<UploadImageToFireFlyResponse> UploadImageAsync(IFormFile file)
+        {
+            var baseURL = _config["Adobe:FireFlyBaseURL"];
+            var clientId = _config["Adobe:ClientId"];
+            var token = await _authService.GetAccessTokenAsync();
+
+            using var content = new StreamContent(file.OpenReadStream());
+            content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+            content.Headers.ContentLength = file.Length;
+
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{baseURL}/v2/storage/image");
+            request.Headers.Add("x-api-key", clientId);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Content = content;
+
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<UploadImageToFireFlyResponse>(json)!;
+        }
+
     }
 }

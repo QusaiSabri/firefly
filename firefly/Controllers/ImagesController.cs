@@ -105,5 +105,16 @@ namespace firefly.Controllers
             }
             return Ok(new { urls = sasUrls });
         }
+
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("Invalid file.");
+
+            var result = await _imageService.UploadImageAsync(file);
+            return Ok(result);
+        }
+
     }
 }
