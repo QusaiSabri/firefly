@@ -8,7 +8,7 @@ namespace firefly.Services
     {
         private readonly ILogger<JobPollingService> _logger;
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(30);
+        private readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(5);
         private readonly IConfiguration _config;
 
         public JobPollingService(ILogger<JobPollingService> logger, IServiceScopeFactory scopeFactory, IConfiguration config)
