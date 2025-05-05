@@ -156,9 +156,9 @@ export function Chat() {
 
   return (
     <div className='flex flex-col h-full w-[95%] mx-auto border rounded-md shadow-md'>
-      <div className='p-2 bg-gray-800 text-white'>
+      {/* <div className='p-2 bg-gray-800 text-white'>
         <Label>Reference Image ID: {structureReferenceImageId}</Label>
-      </div>
+      </div> */}
       <div className='flex-1 overflow-y-auto p-4 space-y-4 max-h-[calc(100vh-460px)]'>
         {messages.map((message) => (
           <div key={message.id} className='p-2 rounded-md max-w-fit'>
