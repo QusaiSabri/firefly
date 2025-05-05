@@ -1,7 +1,7 @@
 'use client';
 
 import { SidebarIcon } from 'lucide-react';
-
+import { useLocation } from 'react-router';
 import { SearchForm } from '@/components/search-form';
 import {
   Breadcrumb,
@@ -17,7 +17,12 @@ import { useSidebar } from '@/components/ui/sidebar';
 
 export function SiteHeader() {
   const { toggleSidebar } = useSidebar();
+  const location = useLocation();
+  const getPageName = (pathname: string): string => {
+    if (pathname === '/') return 'Home';
 
+    return pathname.replace('/', '').replace(/^\w/, (c) => c.toUpperCase());
+  };
   return (
     <header className='flex sticky top-0 z-50 w-full items-center border-b bg-background'>
       <div className='flex h-[--header-height] w-full items-center gap-2 px-4'>
@@ -37,7 +42,7 @@ export function SiteHeader() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Chat</BreadcrumbPage>
+              <BreadcrumbPage>{getPageName(location.pathname)}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
