@@ -45,8 +45,14 @@ namespace firefly.Services.Storage
             if (containerClient.Exists() && !String.IsNullOrEmpty(blobPath))
             {               
                 var blobClient = containerClient.GetBlobClient(blobPath);
-                var sasUri = blobClient.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.Add(expiry));
-                return sasUri.ToString();
+
+                 var exists = await blobClient.ExistsAsync();
+
+                if (exists)
+                {
+                    var sasUri = blobClient.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.Add(expiry));
+                    return sasUri.ToString();
+                }            
             }
 
             return string.Empty;

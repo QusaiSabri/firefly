@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   GenerateImageRequest,
+  GenerateImageResponse,
   ImagesResponse,
   isJobCompleteResponse,
   UploadImageResponse,
@@ -11,10 +12,25 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const generateImageAsync = async (
   generateImageRequest: GenerateImageRequest
-): Promise<any> => {
+): Promise<GenerateImageResponse> => {
   const response = await axios.post(
     `${API_BASE_URL}/images/generate-async`,
     generateImageRequest
+  );
+  return response.data;
+};
+
+export const generateImagesBulkAsync = async (
+  requests: GenerateImageRequest[]
+): Promise<GenerateImageResponse[]> => {
+  const response = await axios.post<GenerateImageResponse[]>(
+    `${API_BASE_URL}/images/generate-bulk`,
+    requests,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
   );
   return response.data;
 };
