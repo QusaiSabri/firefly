@@ -89,7 +89,10 @@ namespace firefly.Controllers
             foreach (var asset in assetsJobIds)
             {
                 var sasUrl = await _blobService.GetSasUrl(asset.BlobPath, TimeSpan.FromHours(2));
-                sasUrls.Add(sasUrl);
+                if(!String.IsNullOrEmpty(sasUrl))
+                {
+                    sasUrls.Add(sasUrl);
+                }
             }
             
             return Ok(new { urls = sasUrls });
