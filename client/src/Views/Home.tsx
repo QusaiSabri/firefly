@@ -1,6 +1,9 @@
 import { Chat } from '@/components/chat';
 import { ToggleGroupBar } from '@/components/toggle-group-bar';
+import { ImageStructureCard } from '@/components/image-structure-card';
+import { ImageStyleCard } from '@/components/image-style-card';
 import React from 'react';
+import { ImageContentClassCard } from '@/components/image-content-class-card';
 
 const Home: React.FC = () => {
   return (
@@ -10,9 +13,18 @@ const Home: React.FC = () => {
         <div className='aspect-video rounded-xl bg-muted/50' />
         <div className='aspect-video rounded-xl bg-muted/50' />
       </div>
-      <div className='min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min' />
-      <ToggleGroupBar />
-      <Chat />
+      <div className='rounded-xl bg-muted/50' />
+      <div className='flex flex-1 gap-4'>
+        <div className='flex flex-col gap-y-3 last:mb-0'>
+          <ImageContentClassCard />
+          <ImageStructureCard />
+          <ImageStyleCard />
+        </div>
+        <div className='flex-1 flex flex-col'>
+          <ToggleGroupBar />
+          <Chat />
+        </div>
+      </div>
     </div>
   );
 };

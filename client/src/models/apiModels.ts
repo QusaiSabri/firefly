@@ -50,3 +50,11 @@ export interface ImagesResponse {
 export interface isJobCompleteResponse {
   completed: boolean;
 }
+
+export interface UploadImageResponse {
+  images: UploadedImage[];
+}
+
+export interface UploadedImage {
+  id: string;
+}

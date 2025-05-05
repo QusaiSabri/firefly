@@ -18,12 +18,13 @@ namespace firefly.Services.Adapters
         private readonly ILogger<FireflyAdapter> _logger;
         private readonly IImageGenerationJobRepository _jobRepo;
 
-        public FireflyAdapter(HttpClient httpClient, IConfiguration config, AuthService authService, IImageGenerationJobRepository jobRepo)
+        public FireflyAdapter(HttpClient httpClient, IConfiguration config, ILogger<FireflyAdapter> logger, AuthService authService, IImageGenerationJobRepository jobRepo)
         {
             _httpClient = httpClient;
             _config = config;
             _authService = authService;
             _jobRepo = jobRepo;
+            _logger = logger;
         }
         public async Task<GenerateImageResponse> GenerateImageAsync(GenerateImageRequest request)
         {

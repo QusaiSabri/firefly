@@ -11,12 +11,11 @@ export default function Page() {
     <ThemeProvider defaultTheme='dark' storageKey='vite-ui-theme'>
       <div className='[--header-height:calc(theme(spacing.14))]'>
         <SidebarProvider className='flex flex-col'>
-          <div className='flex flex-1'>
+          <div className='flex flex-1 overflow-x-hidden'>
             <AppSidebar />
             <SidebarInset>
-              <div className='flex flex-1 flex-col gap-4 p-4'>
+              <div className='flex flex-1 flex-col gap-0 p-0'>
                 <SiteHeader />
-
                 <Routes>
                   <Route path='/' element={<Home />} />
                   <Route path='/library' element={<Library />} />

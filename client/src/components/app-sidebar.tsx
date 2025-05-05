@@ -29,8 +29,8 @@ import { ModeToggle } from './mode-toggle';
 // This is sample data.
 const data = {
   user: {
-    name: 'shadcn',
-    email: 'm@example.com',
+    name: 'Qusai',
+    email: 'Qusai.sabri19@gmail.com',
     avatar: '/avatars/shadcn.jpg',
   },
   teams: [

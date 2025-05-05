@@ -3,6 +3,7 @@ import {
   GenerateImageRequest,
   ImagesResponse,
   isJobCompleteResponse,
+  UploadImageResponse,
 } from '@/models/apiModels';
 import axios from 'axios';
 
@@ -43,5 +44,24 @@ export const GetJobStatus = async (
   jobId: string
 ): Promise<isJobCompleteResponse> => {
   const response = await axios.get(`${API_BASE_URL}/jobs/${jobId}/status`);
+  return response.data;
+};
+
+export const uploadImageAsync = async (
+  file: File
+): Promise<UploadImageResponse> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await axios.post(
+    `${API_BASE_URL}/images/upload/firefly`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
   return response.data;
 };
