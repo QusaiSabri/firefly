@@ -5,6 +5,7 @@ using firefly.Services;
 using firefly.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace firefly.Controllers
 {
@@ -16,13 +17,15 @@ namespace firefly.Controllers
         private readonly IImageService _imageService;
         private readonly IStorageService _blobService;
         private readonly LuminarDbContext _dbContext;
+        private readonly IMemoryCache _cache;
 
-        public ImagesController(FireflyStorageService storageService, IImageService imageService, LuminarDbContext dbContext, IStorageService blobService)
+        public ImagesController(FireflyStorageService storageService, IImageService imageService, LuminarDbContext dbContext, IStorageService blobService, IMemoryCache cache)
         {
             _storageService = storageService;
             _imageService = imageService;
             _dbContext = dbContext;
             _blobService = blobService;
+            _cache = cache;
         }
 
         [HttpPost("upload/blob")]
@@ -31,7 +34,7 @@ namespace firefly.Controllers
             var uploadId = await _storageService.UploadImageAsync(file);
             return Ok(new UploadImageResponse { UploadId = uploadId });
         }
-        
+
         [HttpPost("generate-async")]
         public async Task<IActionResult> GenerateAsync([FromBody] GenerateImageRequest request)
         {
@@ -77,24 +80,24 @@ namespace firefly.Controllers
         public async Task<IActionResult> GetImagesAsync(string jobId)
         {
             var sasUrls = new List<string>();
-            
+
             var assetsJobIds = _dbContext.ImageAssets
                 .Include(a => a.Job)
                 .Where(j => j.Job.JobId == jobId)
                 .ToList();
-            
+
             if (assetsJobIds == null || assetsJobIds.Count == 0)
                 return NotFound();
-           
+
             foreach (var asset in assetsJobIds)
             {
                 var sasUrl = await _blobService.GetSasUrl(asset.BlobPath, TimeSpan.FromHours(2));
-                if(!String.IsNullOrEmpty(sasUrl))
+                if (!String.IsNullOrEmpty(sasUrl))
                 {
                     sasUrls.Add(sasUrl);
                 }
             }
-            
+
             return Ok(new { urls = sasUrls });
         }
 
@@ -102,6 +105,13 @@ namespace firefly.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllImagesAsync([FromQuery] int? limit)
         {
+            string cacheKey = $"images_{limit ?? -1}";
+
+            if (_cache.TryGetValue(cacheKey, out List<string> cachedUrls))
+            {
+                return Ok(new { urls = cachedUrls });
+            }
+
             var sasUrls = new List<string>();
 
             var assetsJobIds = _dbContext.ImageAssets
@@ -117,10 +127,14 @@ namespace firefly.Controllers
                 var sasUrl = await _blobService.GetSasUrl(asset.BlobPath, TimeSpan.FromHours(2));
 
                 if (!String.IsNullOrEmpty(sasUrl))
-                {                    
+                {
                     sasUrls.Add(sasUrl);
                 }
             }
+
+            // Cache for 5 minutes
+            _cache.Set(cacheKey, sasUrls, TimeSpan.FromMinutes(5));
+
             return Ok(new { urls = sasUrls });
         }
 
