@@ -169,5 +169,26 @@ namespace firefly.Services.Adapters
             return JsonSerializer.Deserialize<UploadImageToFireFlyResponse>(json)!;
         }
 
+        public async Task<List<GenerateImageResponse>> GenerateBulkImagesAsync(List<GenerateImageRequest> requests)
+        {
+            var results = new List<GenerateImageResponse>();
+
+            foreach (var request in requests)
+            {
+                try
+                {
+                    var result = await GenerateImageAsync(request);
+                    results.Add(result);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to generate image for prompt: {Prompt}", request.Prompt);
+                }
+            }
+
+            return results;
+        }
+
+
     }
 }

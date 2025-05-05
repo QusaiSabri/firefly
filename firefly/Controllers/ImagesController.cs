@@ -39,6 +39,17 @@ namespace firefly.Controllers
             return Ok(result);
         }
 
+        [HttpPost("generate-bulk")]
+        public async Task<IActionResult> GenerateBulkAsync([FromBody] List<GenerateImageRequest> requests)
+        {
+            if (requests == null || !requests.Any())
+                return BadRequest("At least one image generation request is required.");
+
+            var results = await _imageService.GenerateBulkImagesAsync(requests);
+            return Ok(results);
+        }
+
+
         [HttpPost("expand-async")]
         public async Task<IActionResult> ExpandAsync([FromBody] ExpandImageRequest request)
         {

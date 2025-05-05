@@ -10,5 +10,6 @@ namespace firefly.Services.Interfaces
         Task<GenerateImageResponse> GenerateImageAsync(GenerateImageRequest request);
         Task<JobResult> GetJobResultAsync(string jobId);
         Task<UploadImageToFireFlyResponse> UploadImageAsync(IFormFile file);
+        Task<List<GenerateImageResponse>> GenerateBulkImagesAsync(List<GenerateImageRequest> requests);
     }
 }
