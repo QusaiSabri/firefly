@@ -12,6 +12,11 @@ export function SkeletonCard() {
       <Skeleton className='h-[245px] w-[450px] rounded-xl mb-4' />
       <Skeleton className='h-[245px] w-[450px] rounded-xl mb-4' />
       <Skeleton className='h-[245px] w-[450px] rounded-xl mb-4' />
+      <Skeleton className='h-[245px] w-[450px] rounded-xl mb-4' />
+      <Skeleton className='h-[245px] w-[450px] rounded-xl mb-4' />
+      <Skeleton className='h-[245px] w-[450px] rounded-xl mb-4' />
+      <Skeleton className='h-[245px] w-[450px] rounded-xl mb-4' />
+      <Skeleton className='h-[245px] w-[450px] rounded-xl mb-4' />
     </div>
   );
 }

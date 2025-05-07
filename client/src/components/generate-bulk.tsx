@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { GenerateImageRequest } from '@/models/apiModels';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Alert } from '@/components/ui/alert';
 import { generateImagesBulkAsync } from '@/api/Images';
 import {
   Card,
@@ -13,6 +11,7 @@ import {
   CardTitle,
 } from './ui/card';
 import { CheckIcon, UploadIcon } from 'lucide-react';
+import { AlertMessage } from './alert-message';
 
 const GenerateBulk: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -22,6 +21,7 @@ const GenerateBulk: React.FC = () => {
   const [fileCountsMessage, setFileCountsMessage] = useState<string | null>(
     null
   );
+  const [showError, setShowError] = useState(false);
 
   const validateJson = (data: GenerateImageRequest[]): boolean => {
     if (!Array.isArray(data)) {
@@ -114,6 +114,7 @@ const GenerateBulk: React.FC = () => {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const uploadedFile = event.target.files?.[0];
+    console.log('Uploaded file:', uploadedFile);
     if (!uploadedFile) return;
 
     setFile(uploadedFile);
@@ -125,7 +126,9 @@ const GenerateBulk: React.FC = () => {
         const json = JSON.parse(e.target?.result as string);
         if (validateJson(json)) {
           setIsValid(true);
-        }
+        } else {
+          setShowError(true);
+        }    
       } catch (err) {
         setError('Invalid JSON file.');
       }
@@ -170,7 +173,7 @@ const GenerateBulk: React.FC = () => {
   return (
     <Card className='h-full'>
       <CardHeader>
-        <CardTitle>Generate Bulk Images</CardTitle>
+        <CardTitle>Generate Images in Bulk</CardTitle>
         <CardDescription>Upload a json file..</CardDescription>
       </CardHeader>
       <CardContent>
@@ -183,6 +186,11 @@ const GenerateBulk: React.FC = () => {
             File is valid
           </span>
         )}
+         {!isValid && showError && (
+          <span className='flex gap-2 text-sm text-muted-foreground pl-2 px-1'>
+            <AlertMessage message='File is not a valid JSON.'  />
+          </span>
+        )}
         {fileCountsMessage && (
           <span className='flex gap-2 text-sm text-muted-foreground pl-2 px-1'>
             <CheckIcon className='mr-1 h-4 w-2' />
@@ -190,7 +198,7 @@ const GenerateBulk: React.FC = () => {
           </span>
         )}
       </CardContent>
-      <CardFooter className='flex justify-between'>
+      <CardFooter className='flex justify-between mt-auto'>
         <input
           id='upload-image-bulk'
           type='file'
@@ -198,7 +206,7 @@ const GenerateBulk: React.FC = () => {
           className='hidden'
           onChange={handleFileUpload}
         />
-        <label htmlFor='upload-image-bulk' title='Upload A Reference Image'>
+        <label htmlFor='upload-image-bulk' title='Upload A JSON File'>
           <Button
             type='button'
             variant='outline'
