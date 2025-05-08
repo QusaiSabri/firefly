@@ -12,6 +12,68 @@ import {
 } from './ui/card';
 import { CheckIcon, UploadIcon } from 'lucide-react';
 import { AlertMessage } from './alert-message';
+import { validate } from 'jsonschema';
+
+const schema = {
+  type: 'array',
+  items: {
+    type: 'object',
+    properties: {
+      prompt: { type: 'string' },
+      size: {
+        type: 'object',
+        properties: {
+          width: { type: 'number' },
+          height: { type: 'number' },
+        },
+        required: ['width', 'height'],
+      },
+      structure: {
+        type: 'object',
+        properties: {
+          strength: { type: 'number' },
+          imageReference: {
+            type: 'object',
+            properties: {
+              source: {
+                type: 'object',
+                properties: {
+                  uploadId: { type: 'string' },
+                },
+                required: ['uploadId'],
+              },
+            },
+          },
+        },
+      },
+      style: {
+        type: 'object',
+        properties: {
+          strength: { type: 'number' },
+          imageReference: {
+            type: 'object',
+            properties: {
+              source: {
+                type: 'object',
+                properties: {
+                  uploadId: { type: 'string' },
+                },
+                required: ['uploadId'],
+              },
+            },
+          },
+          presets: { type: 'array' },
+        },
+      },
+      seeds: {
+        type: 'array',
+        items: { type: 'number' },
+      },
+      visualIntensity: { type: 'number' },
+    },
+    required: ['prompt'],
+  },
+};
 
 const GenerateBulk: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -21,91 +83,15 @@ const GenerateBulk: React.FC = () => {
   const [fileCountsMessage, setFileCountsMessage] = useState<string | null>(
     null
   );
-  const [showError, setShowError] = useState(false);
 
-  const validateJson = (data: GenerateImageRequest[]): boolean => {
-    if (!Array.isArray(data)) {
-      setError('Uploaded file must be a JSON array.');
+  const validateJson = (data: unknown): boolean => {
+    console.log('Validating JSON:', data);
+    const result = validate(data, schema);
+    console.log('Validation result:', result);
+    if (!result.valid) {
+      setError(result.errors.map((err) => err.stack).join('; '));
       return false;
     }
-
-    for (const item of data) {
-      if (typeof item.prompt !== 'string') {
-        setError('Each item must have a valid prompt.');
-        return false;
-      }
-
-      if (item.size) {
-        if (
-          typeof item.size.width !== 'number' ||
-          typeof item.size.height !== 'number'
-        ) {
-          setError(
-            'Each item must have valid width and height if size is provided.'
-          );
-          return false;
-        }
-      }
-
-      if (item.structure) {
-        if (
-          item.structure.strength &&
-          typeof item.structure.strength !== 'number'
-        ) {
-          setError('Structure strength must be a number if provided.');
-          return false;
-        }
-
-        if (
-          item.structure.imageReference &&
-          item.structure.imageReference.source &&
-          typeof item.structure.imageReference.source.uploadId !== 'string'
-        ) {
-          setError(
-            'Structure imageReference source uploadId must be a string if provided.'
-          );
-          return false;
-        }
-      }
-
-      if (item.style) {
-        if (item.style.strength && typeof item.style.strength !== 'number') {
-          setError('Style strength must be a number if provided.');
-          return false;
-        }
-
-        if (
-          item.style.imageReference &&
-          item.style.imageReference.source &&
-          typeof item.style.imageReference.source.uploadId !== 'string'
-        ) {
-          setError(
-            'Style imageReference source uploadId must be a string if provided.'
-          );
-          return false;
-        }
-
-        if (item.style.presets && !Array.isArray(item.style.presets)) {
-          setError('Style presets must be an array if provided.');
-          return false;
-        }
-      }
-
-      if (
-        item.seeds &&
-        (!Array.isArray(item.seeds) ||
-          !item.seeds.every((seed) => typeof seed === 'number'))
-      ) {
-        setError('Seeds must be an array of numbers if provided.');
-        return false;
-      }
-
-      if (item.visualIntensity && typeof item.visualIntensity !== 'number') {
-        setError('Visual intensity must be a number if provided.');
-        return false;
-      }
-    }
-
     setError(null);
     return true;
   };
@@ -114,25 +100,40 @@ const GenerateBulk: React.FC = () => {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const uploadedFile = event.target.files?.[0];
-    console.log('Uploaded file:', uploadedFile);
-    if (!uploadedFile) return;
+    if (!uploadedFile) {
+      setError('No file selected.');
+      return;
+    }
 
     setFile(uploadedFile);
     setIsValid(false);
 
     const reader = new FileReader();
     reader.onload = (e) => {
+      const fileContent = e.target?.result;
+      if (!fileContent) {
+        setError('File is empty or could not be read.');
+        return;
+      }
+
       try {
-        const json = JSON.parse(e.target?.result as string);
+        const json = JSON.parse(fileContent as string);
         if (validateJson(json)) {
           setIsValid(true);
         } else {
-          setShowError(true);
-        }    
+          setError('File is not valid JSON.');
+        }
       } catch (err) {
-        setError('Invalid JSON file.');
+        setError(
+          'Invalid JSON format. Please ensure the file contains valid JSON.'
+        );
       }
     };
+
+    reader.onerror = () => {
+      setError('An error occurred while reading the file.');
+    };
+
     reader.readAsText(uploadedFile);
   };
 
@@ -186,9 +187,9 @@ const GenerateBulk: React.FC = () => {
             File is valid
           </span>
         )}
-         {!isValid && showError && (
+        {!isValid && error && (
           <span className='flex gap-2 text-sm text-muted-foreground pl-2 px-1'>
-            <AlertMessage message='File is not a valid JSON.'  />
+            <AlertMessage message='File is not a valid JSON.' />
           </span>
         )}
         {fileCountsMessage && (
