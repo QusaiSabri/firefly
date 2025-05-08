@@ -365,3 +365,4 @@ FodyWeavers.xsd
 *.db
 *.db*
 
+client/pnpm-lock.yaml
