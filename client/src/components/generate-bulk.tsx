@@ -99,6 +99,7 @@ const GenerateBulk: React.FC = () => {
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
+    console.log('File upload event:', event);
     const uploadedFile = event.target.files?.[0];
     if (!uploadedFile) {
       setError('No file selected.');
@@ -120,6 +121,8 @@ const GenerateBulk: React.FC = () => {
         const json = JSON.parse(fileContent as string);
         if (validateJson(json)) {
           setIsValid(true);
+          setError(null);
+          setFileCountsMessage(null);
         } else {
           setError('File is not valid JSON.');
         }
@@ -135,6 +138,8 @@ const GenerateBulk: React.FC = () => {
     };
 
     reader.readAsText(uploadedFile);
+    
+    event.target.value = '';
   };
 
   const handleProcess = async () => {
